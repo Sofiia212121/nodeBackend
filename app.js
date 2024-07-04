@@ -1,22 +1,22 @@
-require('dotenv').config()
-const express = require('express')
+import express from 'express'
+import queryBuilder from './src/db/connection.js'
+
 const app = express()
 app.use(express.json())
 const port = 3000
 
-const knex = require('knex')({
-  client: 'mysql',
-  connection: {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-  },
-});
-
 app.get('/users', async (request, response) => {
-  const users = await knex.select('*').from('users')
+  let users = []
+
+  try {
+    users = await queryBuilder.select('*').from('users')
+  } catch (e) {
+    response.status(500).json({
+      error: 'Internal server error'
+    })
+    return
+  }
+
   response.status(200).json(users)
 })
 
@@ -30,7 +30,16 @@ app.get('/users/:id', async (request, response) => {
     return
   }
 
-  const user = await knex.select('*').from('users').where('id', userId).first()
+  let user = null
+
+  try {
+    user = await queryBuilder.select('*').from('users').where('id', userId).first()
+  } catch (e) {
+    response.status(500).json({
+      error: 'Internal server error'
+    })
+    return
+  }
 
   if (!user) {
     response.status(404).json({
@@ -52,7 +61,16 @@ app.delete('/users/:id', async (request, response) => {
     return
   }
 
-  const result = await knex.delete().from('users').where('id', userId)
+  let result = null
+
+  try {
+    result = await queryBuilder.delete().from('users').where('id', userId)
+  } catch (e) {
+    response.status(500).json({
+      error: 'Internal server error'
+    })
+    return
+  }
 
   if (!result) {
     response.status(404).json({
@@ -76,7 +94,7 @@ app.post('/users', async (request, response) => {
   let id = null
 
   try {
-    id = (await knex('users').insert(newUser)).pop()
+    id = (await queryBuilder('users').insert(newUser)).pop()
   } catch (e) {
     response.status(400).json({
       error: 'Invalid user data'
@@ -84,7 +102,7 @@ app.post('/users', async (request, response) => {
     return
   }
 
-  newUser.Id = id
+  newUser.id = id
 
   response.status(201).json(newUser)
 })
@@ -99,7 +117,16 @@ app.put('/users/:id', async (request, response) => {
     return
   }
 
-  const user = await knex.select('*').from('users').where('id', userId).first()
+  let user = null
+  
+  try {
+    user = await queryBuilder.select('*').from('users').where('id', userId).first()
+  } catch (e) {
+    response.status(500).json({
+      error: 'Internal server error'
+    })
+    return
+  }
 
   if (!user) {
     response.status(404).json({
@@ -117,7 +144,7 @@ app.put('/users/:id', async (request, response) => {
   user.password = request.body.password || ''
 
   try {
-    await knex('users').where('Id', userId).update(user)
+    await queryBuilder('users').where('Id', userId).update(user)
   } catch (e) {
     response.status(422).json({
       error: 'Unable to update a user'
