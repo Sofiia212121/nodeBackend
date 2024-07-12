@@ -1,11 +1,11 @@
-import express from 'express'
-import queryBuilder from './src/db/connection.js'
+import express, { Response, Request } from 'express'
+import queryBuilder from './db/connection'
 
 const app = express()
 app.use(express.json())
 const port = 3000
 
-app.get('/users', async (request, response) => {
+app.get('/users', async (request: Request, response: Response): Promise<void> => {
   let users = []
 
   try {
@@ -20,7 +20,7 @@ app.get('/users', async (request, response) => {
   response.status(200).json(users)
 })
 
-app.get('/users/:id', async (request, response) => {
+app.get('/users/:id', async (request: Request, response: Response): Promise<void> => {
   const userId = +request.params.id
 
   if (!userId) {
@@ -30,16 +30,7 @@ app.get('/users/:id', async (request, response) => {
     return
   }
 
-  let user = null
-
-  try {
-    user = await queryBuilder.select('*').from('users').where('id', userId).first()
-  } catch (e) {
-    response.status(500).json({
-      error: 'Internal server error'
-    })
-    return
-  }
+  const user = await queryBuilder.select('*').from('users').where('id', userId).first()
 
   if (!user) {
     response.status(404).json({
@@ -51,7 +42,7 @@ app.get('/users/:id', async (request, response) => {
   response.status(200).json(user)
 })
 
-app.delete('/users/:id', async (request, response) => {
+app.delete('/users/:id', async (request: Request, response: Response): Promise<void> => {
   const userId = +request.params.id
 
   if (!userId) {
@@ -61,16 +52,7 @@ app.delete('/users/:id', async (request, response) => {
     return
   }
 
-  let result = null
-
-  try {
-    result = await queryBuilder.delete().from('users').where('id', userId)
-  } catch (e) {
-    response.status(500).json({
-      error: 'Internal server error'
-    })
-    return
-  }
+  const result = await queryBuilder.delete().from('users').where('id', userId)
 
   if (!result) {
     response.status(404).json({
@@ -82,8 +64,8 @@ app.delete('/users/:id', async (request, response) => {
   response.status(204).send()
 })
 
-app.post('/users', async (request, response) => {
-  const newUser = {
+app.post('/users', async (request: Request, response: Response): Promise<void> => {
+  const userData = {
     first_name: request.body.first_name || '',
     last_name: request.body.last_name || '',
     email: request.body.email || '',
@@ -94,7 +76,7 @@ app.post('/users', async (request, response) => {
   let id = null
 
   try {
-    id = (await queryBuilder('users').insert(newUser)).pop()
+    id = (await queryBuilder('users').insert(userData)).pop()
   } catch (e) {
     response.status(400).json({
       error: 'Invalid user data'
@@ -102,12 +84,13 @@ app.post('/users', async (request, response) => {
     return
   }
 
-  newUser.id = id
-
-  response.status(201).json(newUser)
+  response.status(201).json({
+    id: id,
+    ...userData
+  })
 })
 
-app.put('/users/:id', async (request, response) => {
+app.put('/users/:id', async (request: Request, response: Response): Promise<void> => {
   const userId = +request.params.id
 
   if (!userId) {
@@ -117,16 +100,7 @@ app.put('/users/:id', async (request, response) => {
     return
   }
 
-  let user = null
-  
-  try {
-    user = await queryBuilder.select('*').from('users').where('id', userId).first()
-  } catch (e) {
-    response.status(500).json({
-      error: 'Internal server error'
-    })
-    return
-  }
+  const user = await queryBuilder.select('*').from('users').where('id', userId).first()
 
   if (!user) {
     response.status(404).json({
@@ -135,8 +109,6 @@ app.put('/users/:id', async (request, response) => {
     return
   }
 
-  delete user.Id
-
   user.first_name = request.body.first_name || ''
   user.last_name = request.body.last_name || ''
   user.email = request.body.email || ''
@@ -144,7 +116,7 @@ app.put('/users/:id', async (request, response) => {
   user.password = request.body.password || ''
 
   try {
-    await queryBuilder('users').where('Id', userId).update(user)
+    await queryBuilder('users').where('id', userId).update(user)
   } catch (e) {
     response.status(422).json({
       error: 'Unable to update a user'
