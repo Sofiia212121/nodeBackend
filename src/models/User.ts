@@ -69,12 +69,6 @@ export default class User {
         this._password = password;
     }
 
-    // public static makeFromCommonObject(data: Record<string, number | string>) {
-    //     // const user = new User(0, '', '', '');
-
-
-    // }
-
     public toJSON() {
         return {
             id: this.id,
