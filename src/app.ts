@@ -1,5 +1,7 @@
 import express, { Response, Request } from 'express'
 import queryBuilder from './db/connection'
+import User from './models/User'
+import UserRequest from './Requests/UserRequest'
 
 const app = express()
 app.use(express.json())
@@ -9,7 +11,7 @@ app.get('/users', async (request: Request, response: Response): Promise<void> =>
   let users = []
 
   try {
-    users = await queryBuilder.select('*').from('users')
+    users = User.createFromRawDataArray(await queryBuilder.select('*').from('users'))
   } catch (e) {
     response.status(500).json({
       error: 'Internal server error'
@@ -30,7 +32,7 @@ app.get('/users/:id', async (request: Request, response: Response): Promise<void
     return
   }
 
-  const user = await queryBuilder.select('*').from('users').where('id', userId).first()
+  const user: User = User.createFromRawData(await queryBuilder.select('*').from('users').where('id', userId).first())
 
   if (!user) {
     response.status(404).json({
@@ -65,18 +67,12 @@ app.delete('/users/:id', async (request: Request, response: Response): Promise<v
 })
 
 app.post('/users', async (request: Request, response: Response): Promise<void> => {
-  const userData = {
-    first_name: request.body.first_name || '',
-    last_name: request.body.last_name || '',
-    email: request.body.email || '',
-    phone: request.body.phone || '',
-    password: request.body.password || ''
-  }
+  const userRequest: UserRequest = new UserRequest(request);
 
   let id = null
 
   try {
-    id = (await queryBuilder('users').insert(userData)).pop()
+    id = (await queryBuilder('users').insert(userRequest.toJSON())).pop()
   } catch (e) {
     response.status(400).json({
       error: 'Invalid user data'
@@ -84,10 +80,16 @@ app.post('/users', async (request: Request, response: Response): Promise<void> =
     return
   }
 
-  response.status(201).json({
-    id: id,
-    ...userData
-  })
+  if(typeof id !== 'number'){
+    response.status(422).json({
+      error: 'Unable to create a new user'
+    })
+    return
+  }
+
+  const user: User = User.createFromRequest(id, userRequest);
+
+  response.status(201).json(user)
 })
 
 app.put('/users/:id', async (request: Request, response: Response): Promise<void> => {
@@ -100,7 +102,7 @@ app.put('/users/:id', async (request: Request, response: Response): Promise<void
     return
   }
 
-  const user = await queryBuilder.select('*').from('users').where('id', userId).first()
+  let user: User = User.createFromRawData(await queryBuilder.select('*').from('users').where('id', userId).first())
 
   if (!user) {
     response.status(404).json({
@@ -109,11 +111,7 @@ app.put('/users/:id', async (request: Request, response: Response): Promise<void
     return
   }
 
-  user.first_name = request.body.first_name || ''
-  user.last_name = request.body.last_name || ''
-  user.email = request.body.email || ''
-  user.phone = request.body.phone || ''
-  user.password = request.body.password || ''
+  const userRequest: UserRequest = new UserRequest(request);
 
   try {
     await queryBuilder('users').where('id', userId).update(user)
@@ -123,6 +121,8 @@ app.put('/users/:id', async (request: Request, response: Response): Promise<void
     })
     return
   }
+
+  user = User.createFromRequest(userId, userRequest);
 
   response.status(200).json(user)
 })
