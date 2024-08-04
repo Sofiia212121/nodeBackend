@@ -7,8 +7,10 @@ const app = express()
 app.use(express.json())
 const port = 3000
 
+console.log(User.getTable());
+
 app.get('/users', async (request: Request, response: Response): Promise<void> => {
-  let users = []
+  let users: User[] = []
 
   try {
     users = User.createFromRawDataArray(await queryBuilder.select('*').from('users'))
