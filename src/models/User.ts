@@ -1,8 +1,10 @@
-import UserPayload from '../Types/UserPayload'
-import UserRequest from '../Requests/UserRequest'
-import UserData from '../Types/UserData'
+import UserPayload from "../Types/UserPayload";
+import UserRequest from "../Requests/UserRequest";
+import UserData from "../Types/UserData";
+import AbstractModel from "./AbstractModel";
+import UserJSON from "../Types/UserJSON";
 
-export default class User {
+export default class User extends AbstractModel {
     private _id: number;
     private _firstName: string;
     private _lastName: string;
@@ -17,6 +19,7 @@ export default class User {
         phone: string,
         password: string
     ) {
+        super();
         this._id = id;
         this._firstName = firstName;
         this._lastName = lastName;
@@ -69,7 +72,11 @@ export default class User {
         this._password = password;
     }
 
-    public toJSON() {
+    public static getTable(): string {
+        return 'users';
+    }
+
+    public toJSON(): UserJSON {
         return {
             id: this.id,
             firstName: this._firstName,

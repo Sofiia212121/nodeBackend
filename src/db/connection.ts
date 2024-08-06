@@ -1,5 +1,5 @@
-import 'dotenv/config'
-import knex from 'knex'
+import "dotenv/config";
+import knex from "knex";
 
 const queryBuilder = knex({
     client: 'mysql',
@@ -12,4 +12,4 @@ const queryBuilder = knex({
     },
 })
 
-export default queryBuilder
+export default queryBuilder;
