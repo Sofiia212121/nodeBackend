@@ -7,13 +7,11 @@ const app = express()
 app.use(express.json())
 const port = 3000
 
-console.log(User.getTable());
-
 app.get('/users', async (request: Request, response: Response): Promise<void> => {
   let users: User[] = []
 
   try {
-    users = User.createFromRawDataArray(await queryBuilder.select('*').from('users'))
+    users = User.createFromRawDataArray(await queryBuilder.select('*').from(User.getTable()))
   } catch (e) {
     response.status(500).json({
       error: 'Internal server error'
@@ -34,7 +32,7 @@ app.get('/users/:id', async (request: Request, response: Response): Promise<void
     return
   }
 
-  const user: User = User.createFromRawData(await queryBuilder.select('*').from('users').where('id', userId).first())
+  const user: User = User.createFromRawData(await queryBuilder.select('*').from(User.getTable()).where('id', userId).first())
 
   if (!user) {
     response.status(404).json({
@@ -56,7 +54,7 @@ app.delete('/users/:id', async (request: Request, response: Response): Promise<v
     return
   }
 
-  const result = await queryBuilder.delete().from('users').where('id', userId)
+  const result = await queryBuilder.delete().from(User.getTable()).where('id', userId)
 
   if (!result) {
     response.status(404).json({
@@ -74,7 +72,7 @@ app.post('/users', async (request: Request, response: Response): Promise<void> =
   let id = null
 
   try {
-    id = (await queryBuilder('users').insert(userRequest.toJSON())).pop()
+    id = (await queryBuilder(User.getTable()).insert(userRequest.toJSON())).pop()
   } catch (e) {
     response.status(400).json({
       error: 'Invalid user data'
@@ -104,7 +102,7 @@ app.put('/users/:id', async (request: Request, response: Response): Promise<void
     return
   }
 
-  let user: User = User.createFromRawData(await queryBuilder.select('*').from('users').where('id', userId).first())
+  let user: User = User.createFromRawData(await queryBuilder.select('*').from(User.getTable()).where('id', userId).first())
 
   if (!user) {
     response.status(404).json({
@@ -116,7 +114,7 @@ app.put('/users/:id', async (request: Request, response: Response): Promise<void
   const userRequest: UserRequest = new UserRequest(request);
 
   try {
-    await queryBuilder('users').where('id', userId).update(user)
+    await queryBuilder(User.getTable()).where('id', userId).update(user)
   } catch (e) {
     response.status(422).json({
       error: 'Unable to update a user'
