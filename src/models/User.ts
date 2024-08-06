@@ -2,6 +2,7 @@ import UserPayload from '../Types/UserPayload'
 import UserRequest from '../Requests/UserRequest'
 import UserData from '../Types/UserData'
 import AbstractModel from './AbstractModel'
+import UserJSON from '../Types/UserJSON'
 
 export default class User extends AbstractModel {
     private _id: number;
@@ -75,7 +76,7 @@ export default class User extends AbstractModel {
         return 'users';
     }
 
-    public toJSON() {
+    public toJSON(): UserJSON {
         return {
             id: this.id,
             firstName: this._firstName,
