@@ -1,5 +1,5 @@
-import { Request } from 'express'
-import UserPayload from '../Types/UserPayload'
+import { Request } from "express";
+import UserPayload from "../Types/UserPayload";
 
 export default class UserRequest {
     private _firstName: string;

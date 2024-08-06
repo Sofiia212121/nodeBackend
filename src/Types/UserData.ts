@@ -1,4 +1,4 @@
-import UserPayload from './UserPayload'
+import UserPayload from "./UserPayload";
 
 type UserData = {
     id: number

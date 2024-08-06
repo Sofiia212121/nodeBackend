@@ -1,7 +1,7 @@
-import express, { Response, Request } from 'express'
-import queryBuilder from './db/connection'
-import User from './models/User'
-import UserRequest from './Requests/UserRequest'
+import express, { Response, Request } from "express";
+import queryBuilder from "./db/connection";
+import User from "./models/User";
+import UserRequest from "./Requests/UserRequest";
 
 const app = express()
 app.use(express.json())
@@ -42,8 +42,6 @@ app.get('/users/:id', async (request: Request, response: Response): Promise<void
   }
 
   const user: User = User.createFromRawData(userData)
-
-  console.log(user.toJSON())
 
   response.status(200).json(user)
 })
