@@ -1,8 +1,8 @@
-import UserPayload from "../Classes/UserPayload";
+import UserPayload from "../Structures/UserPayload";
 import UserRequest from "../Requests/UserRequest";
-import UserData from "../Classes/UserData";
+import UserData from "../Structures/UserData";
 import AbstractModel from "./AbstractModel";
-import UserJSON from "../Classes/UserJSON";
+import UserJSON from "../Structures/UserJSON";
 
 export default class User extends AbstractModel {
     private _id: number;

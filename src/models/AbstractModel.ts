@@ -1,4 +1,4 @@
-import ModelJSON from "../Classes/ModelJSON";
+import ModelJSON from "../Structures/ModelJSON";
 
 export default abstract class AbstractModel {
     public abstract toJSON(): ModelJSON;

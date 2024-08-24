@@ -1,5 +1,5 @@
 import { Request } from "express";
-import UserPayload from "../Classes/UserPayload";
+import UserPayload from "../Structures/UserPayload";
 
 export default class UserRequest {
     private _firstName: string;
