@@ -1,20 +1,21 @@
 import { Request, Response } from 'express';
-import { UserService } from '../services/UserService';
 import { CreateUserRequest } from '../requests/CreateUserRequest';
 import { UpdateUserRequest } from '../requests/UpdateUserRequest';
 import { validate } from 'class-validator';
 import { plainToClass, instanceToPlain } from 'class-transformer';
+import { AppDataSource } from '../data-source';
+import { User } from '../entities/User';
 
-const userService = new UserService();
+const userRepository = AppDataSource.getRepository(User);
 
 export const getAllUsers = async (req: Request, res: Response) => {
-    const users = await userService.getAllUsers();
+    const users = await userRepository.find();
     res.json(instanceToPlain(users));
 };
 
 export const getUserById = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
-    const user = await userService.getUserById(id);
+    const user = await userRepository.findOne({ where: { id } });
 
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -31,7 +32,10 @@ export const createUser = async (req: Request, res: Response) => {
         return res.status(400).json({ errors });
     }
 
-    const newUser = await userService.createUser(createUserRequest);
+    const newUser = userRepository.create({ ...createUserRequest });
+
+    await userRepository.save(newUser);
+
     res.json(instanceToPlain(newUser));
 };
 
@@ -45,20 +49,24 @@ export const updateUser = async (req: Request, res: Response) => {
         return res.status(400).json({ errors });
     }
 
-    const updatedUser = await userService.updateUser(id, updateUserRequest);
+    const updatedUser = await userRepository.findOne({ where: { id } });
 
     if (!updatedUser) {
         return res.status(404).json({ message: 'User not found' });
     }
+
+    Object.assign(updatedUser, updateUserRequest);
+
+    await userRepository.save(updatedUser);
 
     res.json(instanceToPlain(updatedUser));
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
-    const success = await userService.deleteUser(id);
+    const success = await userRepository.delete(id);
 
-    if (!success) {
+    if (success.affected === 0) {
         return res.status(404).json({ message: 'User not found' });
     }
 
