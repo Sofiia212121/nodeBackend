@@ -1,27 +1,27 @@
 {
-  "name": "nodebackend",
+  "name": "nodebackend_v2",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/app.js",
+  "main": "index.js",
   "scripts": {
-    "start": "nodemon",
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node src/app.ts"
   },
-  "author": "Sofiia",
+  "keywords": [],
+  "author": "",
   "license": "ISC",
   "dependencies": {
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "knex": "^3.1.0",
-    "mysql": "^2.18.1"
+    "mysql2": "^3.11.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.20"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
-    "@types/mysql": "^2.15.26",
-    "@types/node": "^20.3.1",
-    "nodemon": "^3.1.4",
+    "@types/node": "^22.5.4",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.4"
   }
 }
