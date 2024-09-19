@@ -23,8 +23,4 @@ export class UpdateUserRequest {
     @Length(1, 20)
     @IsUnique(User, 'phone', { message: 'Phone number already in use' })
     phone!: string;
-
-    @IsString()
-    @Length(6, 255)
-    password!: string;
 }

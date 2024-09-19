@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
 import { CreateUserRequest } from '../requests/CreateUserRequest';
 import { UpdateUserRequest } from '../requests/UpdateUserRequest';
+import { UpdateUserPasswordRequest } from '../requests/UpdateUserPasswordRequest';
 import { validate } from 'class-validator';
 import { plainToClass, instanceToPlain } from 'class-transformer';
 import { AppDataSource } from '../data-source';
 import { User } from '../entities/User';
+import bcrypt from "bcrypt";
 
 const userRepository = AppDataSource.getRepository(User);
 
@@ -34,6 +36,9 @@ export const createUser = async (req: Request, res: Response) => {
 
     const newUser = userRepository.create({ ...createUserRequest });
 
+    const salt = bcrypt.genSaltSync(Number(process.env.SALT_ROUNDS));
+    newUser.password = bcrypt.hashSync(newUser.password, salt);
+
     await userRepository.save(newUser);
 
     res.json(instanceToPlain(newUser));
@@ -60,6 +65,38 @@ export const updateUser = async (req: Request, res: Response) => {
     await userRepository.save(updatedUser);
 
     res.json(instanceToPlain(updatedUser));
+};
+
+export const updateUserPassword = async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    const updateUserPasswordRequest = plainToClass(UpdateUserPasswordRequest, { ...req.body, id });
+
+    const errors = await validate(updateUserPasswordRequest);
+
+    if (errors.length > 0) {
+        return res.status(400).json({ errors });
+    }
+
+    const user = await userRepository.findOne({ where: { id } });
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!bcrypt.compareSync(updateUserPasswordRequest.password, user.password)) {
+        return res.status(403).json({ message: 'Invalid old password' });
+    }
+
+    if (updateUserPasswordRequest.newPassword !== updateUserPasswordRequest.passwordConfirmation) {
+        return res.status(400).json({ message: 'Invalid password confirmation' });
+    }
+
+    const salt = bcrypt.genSaltSync(Number(process.env.SALT_ROUNDS));
+    user.password = bcrypt.hashSync(updateUserPasswordRequest.newPassword, salt);
+
+    await userRepository.save(user);
+
+    res.json(instanceToPlain(user));
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
