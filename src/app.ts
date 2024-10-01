@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import express from 'express';
 import dotenv from 'dotenv';
 import { AppDataSource } from './data-source';
-import { getAllUsers, getUserById, createUser, updateUser, deleteUser, updateUserPassword } from './controllers/UserController';
+import { getAllUsers, getUserById, createUser, updateUser, deleteUser, updateUserPassword, loginUser } from './controllers/UserController';
 
 dotenv.config();
 
@@ -20,6 +20,7 @@ AppDataSource.initialize().then(() => {
     app.post('/users', createUser);
     app.patch('/users/:id', updateUser);
     app.delete('/users/:id', deleteUser);
+    app.post('/login', loginUser);
 
     app.listen(PORT, () => {
         console.log(`Server is running on http://localhost:${PORT}`);

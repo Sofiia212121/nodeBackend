@@ -7,6 +7,7 @@ import { plainToClass, instanceToPlain } from 'class-transformer';
 import { AppDataSource } from '../data-source';
 import { User } from '../entities/User';
 import bcrypt from "bcrypt";
+import { LoginUserRequest } from '../requests/LoginUserRequest';
 
 const userRepository = AppDataSource.getRepository(User);
 
@@ -69,7 +70,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
 export const updateUserPassword = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
-    const updateUserPasswordRequest = plainToClass(UpdateUserPasswordRequest, { ...req.body, id });
+    const updateUserPasswordRequest = plainToClass(UpdateUserPasswordRequest, { ...req.body });
 
     const errors = await validate(updateUserPasswordRequest);
 
@@ -109,3 +110,26 @@ export const deleteUser = async (req: Request, res: Response) => {
 
     res.status(204).send();
 };
+
+export const loginUser = async (req: Request, res: Response) => {
+    const loginUserRequest = plainToClass(LoginUserRequest, req.body);
+    const errors = await validate(loginUserRequest);
+
+    if (errors.length > 0) {
+        return res.status(400).json({ errors });
+    }
+
+    const user = await userRepository.findOne({ where: { email: loginUserRequest.email } });
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!bcrypt.compareSync(loginUserRequest.password, user.password)) {
+        return res.status(403).json({ message: 'Invalid password' });
+    }
+
+    // generate access token
+
+    return res.json(instanceToPlain(user));
+}
