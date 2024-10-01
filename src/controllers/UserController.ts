@@ -8,6 +8,7 @@ import { AppDataSource } from '../data-source';
 import { User } from '../entities/User';
 import bcrypt from "bcrypt";
 import { LoginUserRequest } from '../requests/LoginUserRequest';
+import jwt from 'jsonwebtoken';
 
 const userRepository = AppDataSource.getRepository(User);
 
@@ -129,7 +130,7 @@ export const loginUser = async (req: Request, res: Response) => {
         return res.status(403).json({ message: 'Invalid password' });
     }
 
-    // generate access token
+    const token = jwt.sign(instanceToPlain(user), process.env.JWT_SECRET || '', { expiresIn: '8h' });
 
-    return res.json(instanceToPlain(user));
+    return res.json({ token: token });
 }
