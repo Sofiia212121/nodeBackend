@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import express from 'express';
 import { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import { AppDataSource } from './data-source';
 import { getAllUsers, getUserById, createUser, updateUser, deleteUser, updateUserPassword, loginUser } from './controllers/UserController';
@@ -12,6 +13,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+app.use(cors());
 
 const authorizationMiddleWare = function (req: Request, res: Response, next: NextFunction) {
     const authoHeader: string = req.headers?.authorization || '';
