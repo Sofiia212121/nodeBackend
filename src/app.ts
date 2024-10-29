@@ -3,9 +3,18 @@ import express from 'express';
 import { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import jwt from 'jsonwebtoken';
 import { AppDataSource } from './data-source';
-import { getAllUsers, getUserById, createUser, updateUser, deleteUser, updateUserPassword, loginUser } from './controllers/UserController';
+import {
+    getAllUsers,
+    getUserById,
+    createUser,
+    updateUser,
+    deleteUser,
+    updateUserPassword,
+    loginUser,
+    getUserByToken,
+    getCurrentUser
+} from './controllers/UserController';
 
 dotenv.config();
 
@@ -16,23 +25,13 @@ app.use(express.json());
 app.use(cors());
 
 const authorizationMiddleWare = function (req: Request, res: Response, next: NextFunction) {
-    const authoHeader: string = req.headers?.authorization || '';
-
-    let token, user;
-
-    if (authoHeader.startsWith('Bearer ')) {
-        token = authoHeader.slice(7);
-    } else {
-        return res.status(401).json({ message: 'Invalid authorization header' });
-    }
-
     try {
-        user = jwt.verify(token, process.env.JWT_SECRET || '');
+        getUserByToken(req);
     } catch (err) {
-        return res.status(401).json({ message: 'Invalid token' });
-    }
+        const errorMessage = (err as Error).message || 'Unautorized';
 
-    console.log(user);
+        return res.status(401).json({ message: errorMessage });
+    }
 
     next();
 };
@@ -49,9 +48,10 @@ AppDataSource.initialize().then(() => {
     usersRouter.patch('/:id', updateUser);
     usersRouter.delete('/:id', deleteUser);
     app.use('/users', usersRouter);
-    
+
     app.post('/login', loginUser);
     app.post('/register', createUser);
+    app.get('/current-user', getCurrentUser);
 
     app.listen(PORT, () => {
         console.log(`Server is running on http://localhost:${PORT}`);

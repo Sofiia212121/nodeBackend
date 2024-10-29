@@ -12,6 +12,26 @@ import jwt from 'jsonwebtoken';
 
 const userRepository = AppDataSource.getRepository(User);
 
+export const getUserByToken = function (req: Request): User {
+    const authoHeader: string = req.headers?.authorization || '';
+
+    let token, user;
+
+    if (authoHeader.startsWith('Bearer ')) {
+        token = authoHeader.slice(7);
+    } else {
+        throw new Error('Invalid authorization header');
+    }
+
+    try {
+        user = jwt.verify(token, process.env.JWT_SECRET || '');
+    } catch (err) {
+        throw new Error('Invalid token');
+    }
+
+    return plainToClass(User, user);
+};
+
 export const getAllUsers = async (req: Request, res: Response) => {
     const users = await userRepository.find();
     res.json(instanceToPlain(users));
@@ -27,6 +47,18 @@ export const getUserById = async (req: Request, res: Response) => {
 
     res.json(instanceToPlain(user));
 };
+
+export const getCurrentUser = async (req: Request, res: Response) => {
+    let user: User;
+
+    try {
+        user = getUserByToken(req);
+    } catch (err) {
+        return res.json(null);
+    }
+
+    res.json(instanceToPlain(user));
+}
 
 export const createUser = async (req: Request, res: Response) => {
     const createUserRequest = plainToClass(CreateUserRequest, req.body);
