@@ -9,6 +9,7 @@ import { User } from '../entities/User';
 import bcrypt from "bcrypt";
 import { LoginUserRequest } from '../requests/LoginUserRequest';
 import jwt from 'jsonwebtoken';
+import ErrorResponseMaker from '../services/ErrorResponseMaker';
 
 const userRepository = AppDataSource.getRepository(User);
 
@@ -42,7 +43,7 @@ export const getUserById = async (req: Request, res: Response) => {
     const user = await userRepository.findOne({ where: { id } });
 
     if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json(ErrorResponseMaker.fromStr('User not found'));
     }
 
     res.json(instanceToPlain(user));
@@ -65,7 +66,7 @@ export const createUser = async (req: Request, res: Response) => {
     const errors = await validate(createUserRequest);
 
     if (errors.length > 0) {
-        return res.status(400).json({ errors });
+        return res.status(400).json(ErrorResponseMaker.fromValidationErrors(errors));
     }
 
     const newUser = userRepository.create({ ...createUserRequest });
@@ -85,13 +86,13 @@ export const updateUser = async (req: Request, res: Response) => {
     const errors = await validate(updateUserRequest);
 
     if (errors.length > 0) {
-        return res.status(400).json({ errors });
+        return res.status(400).json(ErrorResponseMaker.fromValidationErrors(errors));
     }
 
     const updatedUser = await userRepository.findOne({ where: { id } });
 
     if (!updatedUser) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json(ErrorResponseMaker.fromStr('User not found'));
     }
 
     Object.assign(updatedUser, updateUserRequest);
@@ -108,21 +109,21 @@ export const updateUserPassword = async (req: Request, res: Response) => {
     const errors = await validate(updateUserPasswordRequest);
 
     if (errors.length > 0) {
-        return res.status(400).json({ errors });
+        return res.status(400).json(ErrorResponseMaker.fromValidationErrors(errors));
     }
 
     const user = await userRepository.findOne({ where: { id } });
 
     if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json(ErrorResponseMaker.fromStr('User not found'));
     }
 
     if (!bcrypt.compareSync(updateUserPasswordRequest.password, user.password)) {
-        return res.status(403).json({ message: 'Invalid old password' });
+        return res.status(403).json(ErrorResponseMaker.fromStr('Invalid old password'));
     }
 
     if (updateUserPasswordRequest.newPassword !== updateUserPasswordRequest.passwordConfirmation) {
-        return res.status(400).json({ message: 'Invalid password confirmation' });
+        return res.status(400).json(ErrorResponseMaker.fromStr('Invalid password confirmation'));
     }
 
     const salt = bcrypt.genSaltSync(Number(process.env.SALT_ROUNDS));
@@ -138,7 +139,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     const success = await userRepository.delete(id);
 
     if (success.affected === 0) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json(ErrorResponseMaker.fromStr('User not found'));
     }
 
     res.status(204).send();
@@ -149,17 +150,17 @@ export const loginUser = async (req: Request, res: Response) => {
     const errors = await validate(loginUserRequest);
 
     if (errors.length > 0) {
-        return res.status(400).json({ errors });
+        return res.status(400).json(ErrorResponseMaker.fromValidationErrors(errors));
     }
 
     const user = await userRepository.findOne({ where: { email: loginUserRequest.email } });
 
     if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json(ErrorResponseMaker.fromStr('User not found'));
     }
 
     if (!bcrypt.compareSync(loginUserRequest.password, user.password)) {
-        return res.status(403).json({ message: 'Invalid password' });
+        return res.status(403).json(ErrorResponseMaker.fromStr('Invalid password'));
     }
 
     const token = jwt.sign(instanceToPlain(user), process.env.JWT_SECRET || '', { expiresIn: '8h' });
