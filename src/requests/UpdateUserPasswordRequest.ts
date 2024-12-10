@@ -1,4 +1,4 @@
-import { IsString, Length } from 'class-validator';
+import { IsString, Length, IsStrongPassword } from 'class-validator';
 
 export class UpdateUserPasswordRequest {
     @IsString()
@@ -7,6 +7,7 @@ export class UpdateUserPasswordRequest {
 
     @IsString()
     @Length(8, 255)
+    @IsStrongPassword()
     newPassword!: string;
 
     @IsString()

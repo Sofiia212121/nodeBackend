@@ -1,4 +1,4 @@
-import { IsString, IsEmail, Length } from 'class-validator';
+import { IsString, IsEmail, Length, IsStrongPassword } from 'class-validator';
 import { IsUnique } from '../validators/UniqueValidator';
 import { User } from '../entities/User';
 
@@ -22,6 +22,7 @@ export class CreateUserRequest {
     phone!: string;
 
     @IsString()
-    @Length(6, 255)
+    @Length(8, 255)
+    @IsStrongPassword()
     password!: string;
 }
