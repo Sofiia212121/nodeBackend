@@ -1,4 +1,4 @@
-import { IsString, IsEmail, Length, IsStrongPassword } from 'class-validator';
+import { IsString, IsEmail, Length, IsStrongPassword, Matches } from 'class-validator';
 import { IsUnique } from '../validators/UniqueValidator';
 import { User } from '../entities/User';
 
@@ -17,7 +17,10 @@ export class CreateUserRequest {
     email!: string;
 
     @IsString()
-    @Length(1, 20)
+    @Length(19, 19, { message: 'Phone number must be in the format: +38 (0##) ###-##-##' })
+    @Matches(/^\+38 \(0\d{2}\) \d{3}-\d{2}-\d{2}$/, {
+        message: 'Phone number must be in the format: +38 (0##) ###-##-##',
+    })
     @IsUnique(User, 'phone', { message: 'Phone number already in use' })
     phone!: string;
 
