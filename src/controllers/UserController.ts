@@ -13,7 +13,7 @@ import ErrorResponseMaker from '../services/ErrorResponseMaker';
 
 const userRepository = AppDataSource.getRepository(User);
 
-export const getUserByToken = function (req: Request): User {
+export const getUserByToken = async function (req: Request): Promise<User> {
     const authoHeader: string = req.headers?.authorization || '';
 
     let token, user;
@@ -30,7 +30,14 @@ export const getUserByToken = function (req: Request): User {
         throw new Error('Invalid token');
     }
 
-    return plainToClass(User, user);
+    user = plainToClass(User, user);
+    user = await userRepository.findOne({ where: { id: user.id } })
+
+    if (!user) {
+        throw new Error('User does not exist');
+    }
+
+    return user;
 };
 
 export const getAllUsers = async (req: Request, res: Response) => {
@@ -53,7 +60,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     let user: User;
 
     try {
-        user = getUserByToken(req);
+        user = await getUserByToken(req);
     } catch (err) {
         return res.json(null);
     }

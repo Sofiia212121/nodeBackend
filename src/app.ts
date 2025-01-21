@@ -24,9 +24,9 @@ const PORT = 3000;
 app.use(express.json());
 app.use(cors());
 
-const authorizationMiddleWare = function (req: Request, res: Response, next: NextFunction) {
+const authorizationMiddleWare = async function (req: Request, res: Response, next: NextFunction) {
     try {
-        getUserByToken(req);
+        await getUserByToken(req);
     } catch (err) {
         const errorMessage = (err as Error).message || 'Unautorized';
 
